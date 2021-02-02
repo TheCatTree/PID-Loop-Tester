@@ -373,7 +373,7 @@ static void prvLEDTimerCallback(void *pvParameters)
 
 	/* Check other tasks. */
 	#if (defined confINCLUDE_USART_ECHO_TASKS)
-	{
+	{ 
 		if (are_usart_echo_tasks_still_running() != pdPASS) {
 			xStatus = pdFAIL;
 		}
