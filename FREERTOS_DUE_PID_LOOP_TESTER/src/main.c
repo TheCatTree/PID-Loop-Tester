@@ -48,16 +48,10 @@
 #define mainSPI_FLASH_TASK_STACK_SIZE   (configMINIMAL_STACK_SIZE * 2)
 #define mainTWI_EEPROM_TASK_STACK_SIZE  (configMINIMAL_STACK_SIZE * 2)
 
-/* When mainDEMONSTRATE_ASYNCHRONOUS_API is set to 1, the SPI and TWI
- * EEPROM/flash examples will use the fully asynchronous FreeRTOS API.
- * When mainDEMONSTRATE_ASYNCHRONOUS_API is set to 0, the SPI and TWI
- * EEPROM/flash examples will use the blocking FreeRTOS API. */
-#define mainDEMONSTRATE_ASYNCHRONOUS_API        (0)
-
 /*-----------------------------------------------------------*/
 
 /*
- * flag setup
+ * Global Error flag setup
  */
  bool Malloc_Fail_flag = false;
  bool StackOverflow_Fail_flag = false;
@@ -85,9 +79,10 @@ void vApplicationTickHook(void);
 /*-----------------------------------------------------------*/
 
 /*
- * Interrupt handler for pins portd.
+ * Interrupt handler for pins on PortD.
  */
 
+//Global Interrupt Count
 int d30_interrupt_count = 0;
 int d28_interrupt_count = 0;
 
@@ -103,34 +98,33 @@ void pin_edge_handler(const uint32_t id, const uint32_t index)
 	
 	if (id == ID_PIOD)
 	{
-		if (index == PIO_PD9)
-		{
+		if (index == PIO_PD9) {
 			A_interrupt++;
 			Last_Alevel = Alevel;
 			Alevel = pio_get(PIOD, PIO_TYPE_PIO_INPUT, PIO_PD9);
-			if (Last_Alevel != Alevel)
-			{
+			if (Last_Alevel != Alevel) { //Check that Hall Sensor changed.
+			
 				Motor_SpeedUpdate = true;
 				updateTimeBetweenInterrupts(xTaskGetTickCountFromISR());
-				if(Alevel == Blevel){
+				if(Alevel == Blevel) {
 					M_position--;
-					}else if(Alevel != Blevel){
+					
+				} else if(Alevel != Blevel) {
 					M_position++;
 				}
 			}
 			
 		} 
-		else if(index == PIO_PD3)
-		{
+		else if(index == PIO_PD3) {
 			B_interrupt++;
 			Last_Blevel = Blevel;
 			Blevel = pio_get(PIOD, PIO_TYPE_PIO_INPUT, PIO_PD3);
-			if (Last_Blevel != Blevel){
+			if (Last_Blevel != Blevel){ //Check that Hall Sensor changed.
 				Motor_SpeedUpdate = true;
 				updateTimeBetweenInterrupts(xTaskGetTickCountFromISR());
 				if(Alevel == Blevel){
 					M_position++;
-					}else if(Alevel != Blevel){
+				} else if(Alevel != Blevel) {
 					M_position--;
 				}
 			}
@@ -183,7 +177,7 @@ int main(void)
 							NULL,						/* The timer does not use its ID, so the ID is just set to NULL. */
 							prvLEDTimerCallback			/* The function that is called each time the timer expires. */
 							);
-	motorque = xQueueCreate( 1, sizeof(motor_que_item) );						
+		motorque = xQueueCreate( 1, sizeof(motor_que_item) ); /* Que for motor communication */						
 	/* Create the motor move Tasks */
 	BaseType_t motormove_task_build = xTaskCreate(motor_move_task,			/* The task that moves the motor. */
 	(const char * const) "MOVE_MOTOR",	/* Text name assigned to the task.  This is just to assist debugging.  The kernel does not use this name itself. */
@@ -192,41 +186,43 @@ int main(void)
 	tskIDLE_PRIORITY + 1,						/* The priority allocated to the task. */
 	NULL);								/* Used to store the handle to the created task - in this case the handle is not required. */
 	configASSERT(motormove_task_build); 
-	BaseType_t speed_update_task_build = xTaskCreate(update_speed,			/* The task that updates speed. */
+	
+	BaseType_t speed_update_task_build = xTaskCreate(update_speed,			/* The task that updates speed value. */
 	(const char * const) "UPDATE SPEED",	/* Text name assigned to the task.  This is just to assist debugging.  The kernel does not use this name itself. */
 	configMINIMAL_STACK_SIZE,					/* The size of the stack allocated to the task. */
 	NULL ,			/* The parameter is used to pass the already configured UART port into the task. */
 	tskIDLE_PRIORITY,						/* The priority allocated to the task. */
 	NULL);								/* Used to store the handle to the created task - in this case the handle is not required. */
 	configASSERT(speed_update_task_build); 
+	
 	/* Sanity check the timer's creation, then start the timer.  The timer
 	will not actually start until the FreeRTOS kernel is started. */
 	configASSERT(xLEDTimer);
 	xTimerStart(xLEDTimer, mainDONT_BLOCK);
 	
 	/* loop tasks */
-	 xTaskCreate(capture_stats,			/* The task that updates speed. */
+	 xTaskCreate(capture_stats,			/* The task that captures motor stats for analysis. */
 	 (const char * const) "CAPTURE STATS",	/* Text name assigned to the task.  This is just to assist debugging.  The kernel does not use this name itself. */
 	 configMINIMAL_STACK_SIZE,					/* The size of the stack allocated to the task. */
 	 NULL ,			/* The parameter is used to pass the already configured UART port into the task. */
 	 tskIDLE_PRIORITY,						/* The priority allocated to the task. */
 	 NULL);								/* Used to store the handle to the created task - in this case the handle is not required. */
 	 
-	 xTaskCreate(pwm_update,			/* The task that updates speed. */
+	 xTaskCreate(pwm_update,			/* The task that updates the PWM value. */
 	 (const char * const) "UPDATE PWM",	/* Text name assigned to the task.  This is just to assist debugging.  The kernel does not use this name itself. */
 	 configMINIMAL_STACK_SIZE,					/* The size of the stack allocated to the task. */
 	 NULL ,			/* The parameter is used to pass the already configured UART port into the task. */
 	 tskIDLE_PRIORITY,						/* The priority allocated to the task. */
 	 NULL);
 	 
-	xTaskCreate(position_control_loop,			/* The task that updates speed. */
+	xTaskCreate(position_control_loop,			/* Positional control loop */
 	(const char * const) "POSITION CONTROL LOOP",	/* Text name assigned to the task.  This is just to assist debugging.  The kernel does not use this name itself. */
 	configMINIMAL_STACK_SIZE,					/* The size of the stack allocated to the task. */
 	NULL ,			/* The parameter is used to pass the already configured UART port into the task. */
 	tskIDLE_PRIORITY,						/* The priority allocated to the task. */
 	NULL);
 	
-	xTaskCreate(speed_control_loop,			/* The task that updates speed. */
+	xTaskCreate(speed_control_loop,			/* Speed control loop */
 	(const char * const) "POSITION CONTROL LOOP",	/* Text name assigned to the task.  This is just to assist debugging.  The kernel does not use this name itself. */
 	configMINIMAL_STACK_SIZE,					/* The size of the stack allocated to the task. */
 	NULL ,			/* The parameter is used to pass the already configured UART port into the task. */
@@ -275,19 +271,21 @@ int main(void)
 	/* Set up code to get pins running */
 	//configure_console();
 
+	/************************************************************************/
+	/* PWM Setup.                                                                     */
+	/************************************************************************/
+	pmc_enable_periph_clk(ID_PWM); //Turn PWM on on board;
 	
-	pmc_enable_periph_clk(ID_PWM);
-	
-	pwm_channel_disable(PWM, PWM_CHANNEL_2);
+	pwm_channel_disable(PWM, PWM_CHANNEL_2); // Turning off channels to be safe.
 	pwm_channel_disable(PWM, PWM_CHANNEL_3);
 	
-	pwm_clock_t clock_setting = {
+	pwm_clock_t clock_setting = { // Basic Clock set up.
 		.ul_clka = PERIOD_VALUE * PWM_FREQUENCY,
 		.ul_clkb = 0,
 		.ul_mck = sysclk_get_cpu_hz(),
 	};
 	
-	pwm_init(PWM, &clock_setting);
+	pwm_init(PWM, &clock_setting); 
 	
 	pwm_channel_2_instance.ul_prescaler = PWM_CMR_CPRE_CLKA;
 	pwm_channel_2_instance.ul_period = PERIOD_VALUE;
@@ -446,7 +444,7 @@ static void prvSetupHardware(void)
 static void motor_move_task(void *pvParameters){
 	static const uint8_t *const running_message = (uint8_t *) "Motor running \r\n";
 	static const uint8_t *const stopping_message = (uint8_t *) "Motor stopping \r\n";
-	static const uint8_t *const que_failed_message = (uint8_t *) "que failed \r\n";
+	static const uint8_t *const que_failed_message = (uint8_t *) "Queue failed \r\n";
 	TickType_t xLastWakeTime = xTaskGetTickCount();
 	uint8_t *output_string;
 	output_string = (uint8_t *) Stevens_CLIGetOutputBuffer();
@@ -703,9 +701,10 @@ static void position_control_loop(void *pvParameters){
 	TickType_t loop_time = xTaskGetTickCount();
 	TickType_t last_loop_time = xTaskGetTickCount();
 	
-	float pK = 2;
-	float iK = 0.2;
-	float dK = 0.02;
+	position_loop_pK = 2;
+	position_loop_iK = 0.2;
+	position_loop_dK = 0.02;
+
 	float slope = 0;
 	int delta = 0;
 	int error = 0;
@@ -731,9 +730,9 @@ static void position_control_loop(void *pvParameters){
 		{
 			if (pid_update.loop_id == CL_position)
 			{
-				pK = pid_update.pK;
-				iK = pid_update.iK;
-				dK = pid_update.dK;
+				position_loop_pK = pid_update.pK;
+				position_loop_iK = pid_update.iK;
+				position_loop_dK = pid_update.dK;
 			}
 		}
 						
@@ -753,7 +752,7 @@ static void position_control_loop(void *pvParameters){
 		//calculate rate of change
 		slope = change / (loop_time - last_loop_time);
 		//add and round to int
-		float f_pwm = pK * delta + iK * error + dK * slope;
+		float f_pwm = position_loop_pK * delta + position_loop_iK * error + position_loop_dK * slope;
 		int i_pwm = (int)(f_pwm + 0.5);
 		//send
 		pwm_out.pwm = abs(i_pwm);
@@ -784,10 +783,11 @@ static void speed_control_loop(void *pvParameters){
 	
 	TickType_t loop_time = xTaskGetTickCount();
 	TickType_t last_loop_time = xTaskGetTickCount();
-	
-	float pK = 2;
-	float iK = 0.2;
-	float dK = 0.02;
+
+	speed_loop_pK = 2;
+	speed_loop_iK = 0.2;
+	speed_loop_dK = 0.02;
+
 	float slope = 0;
 	int delta = 0;
 	int error = 0;
@@ -813,9 +813,9 @@ static void speed_control_loop(void *pvParameters){
 		{
 			if (pid_update.loop_id == CL_speed)
 			{
-				pK = pid_update.pK;
-				iK = pid_update.iK;
-				dK = pid_update.dK;
+				speed_loop_pK = pid_update.pK;
+				speed_loop_iK = pid_update.iK;
+				speed_loop_dK = pid_update.dK;
 			}
 		}
 		
@@ -835,7 +835,7 @@ static void speed_control_loop(void *pvParameters){
 		//calculate rate of change
 		slope = change / (loop_time - last_loop_time);
 		//add and round to int
-		float f_pwm = abs(pK * delta + iK * error + dK * slope);
+		float f_pwm = abs(speed_loop_pK * delta + speed_loop_iK * error + speed_loop_dK * slope);
 		int i_pwm = (int)(f_pwm + 0.5);
 		//send
 		pwm_out.pwm = i_pwm;

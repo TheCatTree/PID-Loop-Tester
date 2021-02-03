@@ -75,34 +75,6 @@ static portBASE_TYPE run_time_stats_command(int8_t *pcWriteBuffer,
 		const int8_t *pcCommandString);
 
 /*
- * Implements the echo-three-parameters command.
- */
-static portBASE_TYPE three_parameter_echo_command(int8_t *pcWriteBuffer,
-		size_t xWriteBufferLen,
-		const int8_t *pcCommandString);
-
-/*
- * Implements the echo-parameters command.
- */
-static portBASE_TYPE multi_parameter_echo_command(int8_t *pcWriteBuffer,
-		size_t xWriteBufferLen,
-		const int8_t *pcCommandString);
-
-/*
- * Implements the create-task command.
- */
-static portBASE_TYPE create_task_command(int8_t *pcWriteBuffer,
-		size_t xWriteBufferLen,
-		const int8_t *pcCommandString);
-
-/*
- * Implements the delete-task command.
- */
-static portBASE_TYPE delete_task_command(int8_t *pcWriteBuffer,
-		size_t xWriteBufferLen,
-		const int8_t *pcCommandString);
-		
-/*
  * Implements the manipulate-pins command.
  */
 static portBASE_TYPE manipulate_pins_command(int8_t *pcWriteBuffer,
@@ -159,7 +131,7 @@ size_t xWriteBufferLen,
 const int8_t *pcCommandString);
 
 /*
-* Implements the control loop command.
+* Implements the command to print out stats  from stats buffer.
 */
 static portBASE_TYPE printStats_command(int8_t *pcWriteBuffer,
 size_t xWriteBufferLen,
@@ -194,50 +166,6 @@ static const CLI_Command_Definition_t task_stats_command_definition =
 	task_stats_command, /* The function to run. */
 	0 /* No parameters are expected. */
 };
-
-/* Structure that defines the "echo_3_parameters" command line command.  This
-takes exactly three parameters that the command simply echos back one at a
-time. */
-static const CLI_Command_Definition_t three_parameter_echo_command_definition =
-{
-	(const int8_t *const) "echo-3-parameters",
-	(const int8_t *const) "echo-3-parameters <param1> <param2> <param3>:\r\n Expects three parameters, echos each in turn\r\n\r\n",
-	three_parameter_echo_command, /* The function to run. */
-	3 /* Three parameters are expected, which can take any value. */
-};
-
-/* Structure that defines the "echo_parameters" command line command.  This
-takes a variable number of parameters that the command simply echos back one at
-a time. */
-static const CLI_Command_Definition_t multi_parameter_echo_command_definition =
-{
-	(const int8_t *const) "echo-parameters",
-	(const int8_t *const) "echo-parameters <...>:\r\n Take variable number of parameters, echos each in turn\r\n\r\n",
-	multi_parameter_echo_command, /* The function to run. */
-	-1 /* The user can enter any number of commands. */
-};
-
-/* Structure that defines the "create-task" command line command.  This takes a
-single parameter that is passed into a newly created task.  The task then
-periodically writes to the console.  The parameter must be a numerical value. */
-static const CLI_Command_Definition_t create_task_command_definition =
-{
-	(const int8_t *const) "create-task",
-	(const int8_t *const) "create-task <param>:\r\n Creates a new task that periodically writes the parameter to the CLI output\r\n\r\n",
-	create_task_command, /* The function to run. */
-	1 /* A single parameter should be entered. */
-};
-
-/* Structure that defines the "delete-task" command line command.  This deletes
-the task that was previously created using the "create-command" command. */
-static const CLI_Command_Definition_t delete_task_command_definition =
-{
-	(const int8_t *const) "delete-task",
-	(const int8_t *const) "delete-task:\r\n Deletes the task created by the create-task command\r\n\r\n",
-	delete_task_command, /* The function to run. */
-	0 /* A single parameter should be entered. */
-};
-
 
 /* Structure that defines the "loop_status" command line command.  This Lets 
 the user turn on and off the PWM and enable pins that will be used by the motor driver, 
@@ -342,12 +270,6 @@ static const CLI_Command_Definition_t loop_status_command_defintion =
 void vRegisterCLICommands(void)
 {
 	/* Register all the command line commands defined immediately above. */
-	FreeRTOS_CLIRegisterCommand(&task_stats_command_definition);
-	FreeRTOS_CLIRegisterCommand(&run_time_stats_command_definition);
-	FreeRTOS_CLIRegisterCommand(&three_parameter_echo_command_definition);
-	FreeRTOS_CLIRegisterCommand(&multi_parameter_echo_command_definition);
-	FreeRTOS_CLIRegisterCommand(&create_task_command_definition);
-	FreeRTOS_CLIRegisterCommand(&delete_task_command_definition);
 	FreeRTOS_CLIRegisterCommand(&manipulate_pins_command_definition);
 	FreeRTOS_CLIRegisterCommand(&motor_forward_command_definition);
 	FreeRTOS_CLIRegisterCommand(&motor_backward_command_definition);
@@ -1057,8 +979,16 @@ const int8_t *pcCommandString){
 	
 	if(parameter_number == 0){
 		parameter_number++;
-		sprintf((char *) pcWriteBuffer, "Position: %d, A interrupts: %d, B interrupts: %d, Speed: %.3f, Range: %d \r\n",M_position, A_interrupt, B_interrupt, GetSpeed(),getRange());
+		sprintf((char *) pcWriteBuffer, "Position: %d, A interrupts: %d, B interrupts: %d, Speed: %.3f, Range: %d \r\n \
+         Wanted Position: %d Wanted Speed: %d \r\n",M_position, A_interrupt, B_interrupt, GetSpeed(),getRange(),M_wanted_position,M_wanted_speed);
+		
 
+		return_value = pdTRUE;
+	} else if(parameter_number == 1){
+		parameter_number++;
+		sprintf((char *) pcWriteBuffer, " PID Loop Values: \r\n \
+		Position Loop: pK: %.3f, iK %.3f, dK %.3f \r\n \
+		Speed Loop: pK: %.3f, iK %.3f, dK %.3f \r\n ", position_loop_pK, position_loop_iK, position_loop_dK, speed_loop_pK, speed_loop_iK, speed_loop_dK );
 		return_value = pdTRUE;
 	} else {
 		/* No more parameters were found.  Make sure the write buffer does

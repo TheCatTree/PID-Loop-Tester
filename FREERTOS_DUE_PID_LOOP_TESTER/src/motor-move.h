@@ -51,6 +51,14 @@ int M_wanted_position;
 float M_wanted_speed;
 bool Motor_SpeedUpdate;
 
+// Values of control loops
+	volatile float speed_loop_pK;
+	volatile float speed_loop_iK;
+	volatile float speed_loop_dK;
+
+	volatile float position_loop_pK;
+	volatile float position_loop_iK;
+	volatile float position_loop_dK;
 
 
 typedef struct
