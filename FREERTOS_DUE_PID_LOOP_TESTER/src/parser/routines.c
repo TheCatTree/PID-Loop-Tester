@@ -53,27 +53,57 @@ void allOff(){
 void updateCommandXk(int lId, xk_flag_t xk, float value){
   //printf("Loop id: %d, xK: %d, Value: %f .", lid , xk ,value);
   sloppy_print("Loop id: %d, xK: %d, Value: %f .", lId , xk ,value);
+  
+  // Get correct loop type.
+  ControlLoop_t loop_name;
+  switch (lId)
+  {
+	 case 0:
+		loop_name = CL_position;
+		sloppy_print("Name = cl_position");
+		break;
+		
+	case 1:
+		loop_name = CL_speed;
+		sloppy_print("Name = cl_speed");
+		break;
+		
+	case 2:
+		loop_name = CL_update;
+		sloppy_print("Name = cl_update");
+		break;
+		
+	  default:
+	  loop_name = CL_update;
+	  sloppy_print("Name = cl_update (default)");
+		break;
+  }
+  
+  pid[loop_name].pK = -1;
+  pid[loop_name].iK = -1;
+  pid[loop_name].dK = -1;
+  
   switch (xk)
   {
 	case F_PK:
-		pid[lId].pK = value;
+		pid[loop_name].pK = value;
   		break;
 	  
 	case F_IK:
-		pid[lId].iK = value;
+		pid[loop_name].iK = value;
 		break;
 		
 	case F_DK:
-		pid[lId].dK = value;
+		pid[loop_name].dK = value;
 		break;
 	
 	default:
 		break;
   }
   
-  pid[lId].loop_id  = lId;
+  pid[lId].loop_id  = loop_name;
   
-  pidBox_updatePID(lId, &pid[lId]);
+  pidBox_updatePID(loop_name, &pid[loop_name]);
 }
 
 

@@ -108,6 +108,9 @@ bool giveMail(mail_box_t * m_box, int slot_number, unsigned int wait_time, void 
             m_box->read_flags[slot_number] = false;
 			m_box->direction_flags[slot_number] = IN;
 
+			/* Give A Binary Semaphore for slot. */
+			xSemaphoreGive( m_box->slot_flags[slot_number]);
+
             /* We have finished accessing the shared resource.  Release the
             semaphore. */
             xSemaphoreGive( m_box->access );
@@ -128,6 +131,9 @@ bool sendMail(mail_box_t * m_box, int slot_number, unsigned int wait_time, void 
 			out = true;
             m_box->read_flags[slot_number] = false;
 			m_box->direction_flags[slot_number] = OUT;
+
+			/* Give A Binary Semaphore for slot. */
+			xSemaphoreGive( m_box->slot_flags[slot_number]);
 
             /* We have finished accessing the shared resource.  Release the
             semaphore. */

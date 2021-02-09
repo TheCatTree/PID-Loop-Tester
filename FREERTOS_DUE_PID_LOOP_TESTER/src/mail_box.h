@@ -31,10 +31,11 @@ typedef enum ControlLoop_t {
 
 
 typedef enum ControlLoop_t {
-	CL_position,
-	CL_speed,
-	CL_update,
+	CL_position = 0,
+	CL_speed = 1,
+	CL_update = 2,
 } ControlLoop_t;
+
 
 #define NUMBERBOXES  3
 typedef struct
@@ -47,12 +48,12 @@ typedef struct
 
 typedef struct
 {
+	bool read;
+	ControlLoop_t loop_id;
+	int run_time;
 	float pK;
 	float iK;
-	float dK;
-	int run_time;
-	ControlLoop_t loop_id;
-	bool read;
+	float dK;			
 } pid_update_item;
 
 

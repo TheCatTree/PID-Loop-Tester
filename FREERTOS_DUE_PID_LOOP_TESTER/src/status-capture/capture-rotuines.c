@@ -69,7 +69,7 @@ void printStats(int amount, uint32_t time){
 			sloppy_print("empty********* \r\n");
 			break;
 			}
-		out = buffer_pop();
+		out = buffer_read();
 		tick = out & tick_mask;
 		if (tick > last_tick)
 		{

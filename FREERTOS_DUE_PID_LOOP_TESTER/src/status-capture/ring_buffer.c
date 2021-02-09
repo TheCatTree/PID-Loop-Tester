@@ -266,6 +266,12 @@ uint32_t buffer_pop(){
 	return out;
 	};
 	
+uint32_t buffer_read(){
+	uint32_t out;
+	circular_buf_get(buffer, &out);
+	return out;
+};
+	
 void buffer_drop(){
 	circular_buf_reset(buffer);
 	};

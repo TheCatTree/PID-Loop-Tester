@@ -6,16 +6,22 @@
  */ 
 #include "../mail_box.h"
 
-mail_box_t * box;
+mail_box_t * pid_box;
 bool pidBox_buildPIDbox(){
-	box = CreateMailBox(sizeof(pid_update_item), NUMBERBOXES);
+	pid_update_item temp;
+	temp.dK = 9;
+	temp.iK = 9;
+	temp.pK = 9;
+	temp.loop_id = CL_update;
+	temp.read = false;
+	pid_box = CreateMailBox(sizeof(temp), NUMBERBOXES);
 	return true;
 }
 bool pidBox_checkForUpdate(ControlLoop_t id,pid_update_item * pid){
-	return takeMail(box, id, 0, pid);
+	return takeMail(pid_box, id, 0, pid);
 	
 }
 bool pidBox_updatePID(ControlLoop_t id,pid_update_item * pid){
-	return sendMail(box,id,portMAX_DELAY,pid);
+	return sendMail(pid_box,id,portMAX_DELAY,pid);
 	
 }

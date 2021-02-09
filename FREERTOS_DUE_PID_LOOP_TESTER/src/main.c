@@ -719,60 +719,64 @@ static void position_control_loop(void *pvParameters){
 	{
 		vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS( 10 ) );
 		//wait until turned on
-		xEventGroupWaitBits( m_control_flags,
+		auto x = xEventGroupWaitBits( m_control_flags,
 		m_position_loop_flag,
 		pdFALSE,
 		pdFALSE,
-		portMAX_DELAY );
+		pdMS_TO_TICKS( 100 ));
 				
 		// test for new PID parameters
+		pid_update.loop_id = CL_update;
+		pid_update.read = false;
 		BaseType_t mail = pidBox_checkForUpdate(CL_position,&pid_update);		if (mail == pdPASS)
 		{
 			if (pid_update.loop_id == CL_position)
 			{
-				position_loop_pK = pid_update.pK;
-				position_loop_iK = pid_update.iK;
-				position_loop_dK = pid_update.dK;
+				position_loop_pK = (pid_update.pK == -1)? position_loop_pK : pid_update.pK;
+				position_loop_iK = (pid_update.iK == -1)? position_loop_iK : pid_update.iK;
+				position_loop_dK =(pid_update.dK == -1)? position_loop_dK : pid_update.dK; 
 			}
 		}
-						
-		//position read & //take time
-		last_loop_time = loop_time;
-		last_position = snapshot_position;
-		loop_time = xTaskGetTickCount();
-		snapshot_position = M_position;
 		
-		//calculate delta for wanted position
-		delta = M_wanted_position - snapshot_position;
+		if(x & m_position_loop_flag){		
+			//position read & //take time
+			last_loop_time = loop_time;
+			last_position = snapshot_position;
+			loop_time = xTaskGetTickCount();
+			snapshot_position = M_position;
 		
-		// calculate error 
-		error += delta;
-		//calculate change in position
-		int change = snapshot_position - last_position;
-		//calculate rate of change
-		slope = change / (loop_time - last_loop_time);
-		//add and round to int
-		float f_pwm = position_loop_pK * delta + position_loop_iK * error + position_loop_dK * slope;
-		int i_pwm = (int)(f_pwm + 0.5);
-		//send
-		pwm_out.pwm = abs(i_pwm);
-		pwm_out.loop_id = CL_position;
-		pwm_out.created_time = xTaskGetTickCount();
-		pwm_out.created_time = 0;
-		pwmBox_sendPWMValue(CL_position, &pwm_out);
+			//calculate delta for wanted position
+			delta = M_wanted_position - snapshot_position;
 		
-		if (((M_wanted_position <= M_position + 3)&&(M_wanted_position >= M_position - 3)))
-		{
-			motorStop();
-		}else{
-            if (getDirection()=='f')  {//If motor is moving forward
-	            if (delta <=-1)//But motor position is > wanted position causing -PWM
-	            {motorBackward();}//Reverse motor
-            }
-            else if (getDirection()=='b'){//If motor is moving backwards
-	            if (delta >=0)//But Wanted position is > Motor position causing +pwm
-	            {motorFoward();}//Reverse motor
-            }else{motorFoward();}
+			// calculate error 
+			error += delta;
+			//calculate change in position
+			int change = snapshot_position - last_position;
+			//calculate rate of change
+			slope = change / (loop_time - last_loop_time);
+			//add and round to int
+			float f_pwm = position_loop_pK * delta + position_loop_iK * error + position_loop_dK * slope;
+			int i_pwm = (int)(f_pwm + 0.5);
+			//send
+			pwm_out.pwm = abs(i_pwm);
+			pwm_out.loop_id = CL_position;
+			pwm_out.created_time = xTaskGetTickCount();
+			pwm_out.created_time = 0;
+			pwmBox_sendPWMValue(CL_position, &pwm_out);
+		
+			if (((M_wanted_position <= M_position + 3)&&(M_wanted_position >= M_position - 3)))
+			{
+				motorStop();
+			}else{
+				if (getDirection()=='f')  {//If motor is moving forward
+					if (delta <=-1)//But motor position is > wanted position causing -PWM
+					{motorBackward();}//Reverse motor
+				}
+				else if (getDirection()=='b'){//If motor is moving backwards
+					if (delta >=0)//But Wanted position is > Motor position causing +pwm
+					{motorFoward();}//Reverse motor
+				}else{motorFoward();}
+			}
 		}
 	}
 }
@@ -802,48 +806,49 @@ static void speed_control_loop(void *pvParameters){
 	{
 		vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS( 10 ) );
 		//wait until turned on
-		xEventGroupWaitBits( m_control_flags,
+		auto x = xEventGroupWaitBits( m_control_flags,
 		m_speed_loop_flag,
 		pdFALSE,
 		pdFALSE,
-		portMAX_DELAY );
+		pdMS_TO_TICKS( 100 ) );
 		
 		// test for new PID parameters
 		BaseType_t mail = pidBox_checkForUpdate( CL_speed, &pid_update);		if (mail == pdPASS)
 		{
 			if (pid_update.loop_id == CL_speed)
 			{
-				speed_loop_pK = pid_update.pK;
-				speed_loop_iK = pid_update.iK;
-				speed_loop_dK = pid_update.dK;
+				speed_loop_pK = (pid_update.pK == -1)? speed_loop_pK : pid_update.pK;
+				speed_loop_iK = (pid_update.iK == -1)? speed_loop_iK : pid_update.iK;
+				speed_loop_dK =(pid_update.dK == -1)? speed_loop_dK : pid_update.dK;
 			}
 		}
+		if(x & m_speed_loop_flag){
 		
-		//speed read & //take time
-		last_loop_time = loop_time;
-		last_speed = snapshot_speed;
-		loop_time = xTaskGetTickCount();
-		snapshot_speed = GetSpeed();
+			//speed read & //take time
+			last_loop_time = loop_time;
+			last_speed = snapshot_speed;
+			loop_time = xTaskGetTickCount();
+			snapshot_speed = GetSpeed();
 		
-		//calculate delta for wanted speed
-		delta = M_wanted_speed - snapshot_speed;
+			//calculate delta for wanted speed
+			delta = M_wanted_speed - snapshot_speed;
 		
-		// calculate error
-		error += delta;
-		//calculate change in speed
-		int change = snapshot_speed - last_speed;
-		//calculate rate of change
-		slope = change / (loop_time - last_loop_time);
-		//add and round to int
-		float f_pwm = abs(speed_loop_pK * delta + speed_loop_iK * error + speed_loop_dK * slope);
-		int i_pwm = (int)(f_pwm + 0.5);
-		//send
-		pwm_out.pwm = i_pwm;
-		pwm_out.loop_id = CL_speed;
-		pwm_out.created_time = xTaskGetTickCount();
-		pwm_out.created_time = 0;
-		pwmBox_sendPWMValue(CL_speed, &pwm_out);
-		
+			// calculate error
+			error += delta;
+			//calculate change in speed
+			int change = snapshot_speed - last_speed;
+			//calculate rate of change
+			slope = change / (loop_time - last_loop_time);
+			//add and round to int
+			float f_pwm = abs(speed_loop_pK * delta + speed_loop_iK * error + speed_loop_dK * slope);
+			int i_pwm = (int)(f_pwm + 0.5);
+			//send
+			pwm_out.pwm = i_pwm;
+			pwm_out.loop_id = CL_speed;
+			pwm_out.created_time = xTaskGetTickCount();
+			pwm_out.created_time = 0;
+			pwmBox_sendPWMValue(CL_speed, &pwm_out);
+		}
 	}
 }
 

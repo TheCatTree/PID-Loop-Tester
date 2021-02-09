@@ -44,6 +44,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+
 /* FreeRTOS+CLI includes. */
 #include "FreeRTOS_CLI.h"
 
@@ -990,7 +991,11 @@ const int8_t *pcCommandString){
 		Position Loop: pK: %.3f, iK %.3f, dK %.3f \r\n \
 		Speed Loop: pK: %.3f, iK %.3f, dK %.3f \r\n ", position_loop_pK, position_loop_iK, position_loop_dK, speed_loop_pK, speed_loop_iK, speed_loop_dK );
 		return_value = pdTRUE;
-	} else {
+	} else if(parameter_number == 2){
+	parameter_number++;
+	sprintf((char *) pcWriteBuffer, " Free Heap Size: %d  \r\n", xPortGetFreeHeapSize());
+	return_value = pdTRUE;
+	}else {
 		/* No more parameters were found.  Make sure the write buffer does
 		not contain a valid string. */
 		pcWriteBuffer[0] = 0x00;
