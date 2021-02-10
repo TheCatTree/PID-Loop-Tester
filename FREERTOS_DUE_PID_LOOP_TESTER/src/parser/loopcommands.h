@@ -42,6 +42,9 @@ cmnd_t cmd_array[NUMLOOPS];
 
 extern int yychar;
 
+void loopsToTest(int loop);
+void flagedLoopsOn( void );
+void clearLoopTestFlags( void );
 void setUpCommands(cmnd_t * xks_a, int number_loops);
 void allOn( void );
 void allOff( void );

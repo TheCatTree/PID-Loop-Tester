@@ -773,7 +773,7 @@
     <Folder Include="src\ASF\thirdparty\freertos\freertos-10.0.0\Source\portable\GCC\ARM_CM3\" />
     <Folder Include="src\ASF\thirdparty\freertos\freertos-10.0.0\Source\portable\MemMang\" />
     <Folder Include="src\config\" />
-    <Folder Include="src\demo-tasks\" />
+    <Folder Include="src\CLI-commands" />
     <Folder Include="src\FreeRTOS-Plus-CLI\" />
     <Folder Include="src\box-functions" />
     <Folder Include="src\status-capture" />
@@ -1537,7 +1537,7 @@
     <Compile Include="src\motor-move.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\demo-tasks\CLI-commands.c">
+    <Compile Include="src\CLI-commands\CLI-commands.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\FreeRTOS-Plus-CLI\FreeRTOS_CLI.c">

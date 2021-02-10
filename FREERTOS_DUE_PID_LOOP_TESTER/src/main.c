@@ -17,6 +17,7 @@
 /* Motor Include */
 #include "mail_box.h"
 #include "parser/loopcommands.tab.h"
+#include "parser/loopcommands.h"
 #include <string.h>
 #include "status-capture/status-capture.h"
 
@@ -160,6 +161,7 @@ static void capture_stats(void *pvParameters);
 static void position_control_loop(void *pvParameters);
 static void speed_control_loop(void *pvParameters);
 static void pwm_update(void *pvParameters);
+static void Loop_testing(void *pvParameters);
 
 
 int main(void)
@@ -228,6 +230,13 @@ int main(void)
 	NULL ,			/* The parameter is used to pass the already configured UART port into the task. */
 	tskIDLE_PRIORITY,						/* The priority allocated to the task. */
 	NULL);
+	
+	xTaskCreate(Loop_testing,			/* PID testing task */
+	(const char * const) "PID tester",	/* Text name assigned to the task.  This is just to assist debugging.  The kernel does not use this name itself. */
+	configMINIMAL_STACK_SIZE,					/* The size of the stack allocated to the task. */
+	NULL ,			
+	tskIDLE_PRIORITY + 1,						/* The priority allocated to the task. */
+	&loopTesterHandle);
 	 
 	 
 	/* Set up mail box */
@@ -858,9 +867,40 @@ static void capture_stats(void *pvParameters){
 	{
 		float speed = GetSpeed();
 		int ticks = xTaskGetTickCount();
+		//wait until turned on
+		auto x = xEventGroupWaitBits( m_control_flags,
+		m_stats_capture_flag,
+		pdFALSE,
+		pdFALSE,
+		pdMS_TO_TICKS( 100 ) );
 		
-		captureStats(speed, M_position, ticks);
+		if (x & m_stats_capture_flag)
+		{
+			captureStats(speed, M_position, ticks);		
+			vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS( 10 ) );
+		}
 		
-		vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS( 10 ) );
+	}
+}
+
+static void Loop_testing (void *pvParameters){
+	TickType_t xLastWakeTime = xTaskGetTickCount();
+	uint32_t run_time;
+	for( ;; )
+	{
+		xTaskNotifyWait(0,
+		0,
+		&run_time,
+		portMAX_DELAY
+		);
+		xLastWakeTime = xTaskGetTickCount();
+		// Turn on Capture
+		xEventGroupSetBits(m_control_flags, m_stats_capture_flag);
+		flagedLoopsOn();
+		vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS( run_time ) );
+		allOff();
+		// Turn off Capture
+		xEventGroupClearBits(m_control_flags, m_stats_capture_flag);
+		printFullBuffer(xTaskGetTickCount());
 	}
 }

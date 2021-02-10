@@ -469,18 +469,18 @@ union yyalloc
 #endif /* !YYCOPY_NEEDED */
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  16
+#define YYFINAL  17
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   50
+#define YYLAST   51
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  11
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  7
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  19
+#define YYNRULES  20
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  33
+#define YYNSTATES  34
 
 #define YYMAXUTOK   265
 
@@ -530,7 +530,8 @@ static const yytype_int8 yytranslate[] =
 static const yytype_int8 yyrline[] =
 {
        0,    29,    29,    30,    31,    32,    33,    34,    35,    36,
-      37,    40,    41,    44,    45,    48,    49,    52,    53,    55
+      37,    40,    41,    42,    45,    46,    49,    50,    53,    54,
+      56
 };
 #endif
 
@@ -582,10 +583,10 @@ static const yytype_int16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-      17,    -2,   -10,   -10,   -10,     4,    15,    10,    20,    27,
-      33,   -10,   -10,    25,   -10,   -10,   -10,   -10,    30,     7,
-     -10,    36,   -10,   -10,   -10,    47,   -10,    39,     0,   -10,
-     -10,   -10,   -10
+      18,    -2,     4,   -10,   -10,     6,    16,    11,    21,    28,
+      34,   -10,   -10,    26,   -10,   -10,   -10,   -10,   -10,    31,
+       8,   -10,    37,   -10,   -10,   -10,    48,   -10,    40,     0,
+     -10,   -10,   -10,   -10
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -594,9 +595,9 @@ static const yytype_int8 yypact[] =
 static const yytype_int8 yydefact[] =
 {
        2,     0,    11,    12,     6,     0,     0,     0,     0,     0,
-       0,    15,    13,     0,    17,    18,     1,     4,     0,     0,
-       3,     0,    14,     7,    16,     0,     5,     0,     0,     8,
-      19,     9,    10
+       0,    16,    14,     0,    13,    18,    19,     1,     4,     0,
+       0,     3,     0,    15,     7,    17,     0,     5,     0,     0,
+       8,    20,     9,    10
 };
 
   /* YYPGOTO[NTERM-NUM].  */
@@ -616,22 +617,22 @@ static const yytype_int8 yydefgoto[] =
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-      22,    13,    18,    24,     1,    19,    21,    14,    32,    22,
-      16,     1,    24,    28,    24,    27,     5,     6,    15,    22,
-      24,     1,     2,     3,     1,     4,     5,     6,    17,     5,
-       6,     1,    25,     0,     1,    20,     5,     6,    26,     5,
-       6,    23,     5,     6,    29,     5,     6,    31,     5,     6,
-      30
+      23,    13,    19,    25,     1,    20,    22,    14,    33,    15,
+      23,    17,     1,    25,    29,    25,    28,     5,     6,    16,
+      23,    25,     1,     2,     3,     1,     4,     5,     6,    18,
+       5,     6,     1,    26,     0,     1,    21,     5,     6,    27,
+       5,     6,    24,     5,     6,    30,     5,     6,    32,     5,
+       6,    31
 };
 
 static const yytype_int8 yycheck[] =
 {
-       9,     3,     8,    10,     4,     8,     9,     3,     8,    18,
-       0,     4,    19,    19,    21,    18,     9,    10,     3,    28,
-      27,     4,     5,     6,     4,     8,     9,    10,     8,     9,
-      10,     4,     7,    -1,     4,     8,     9,    10,     8,     9,
-      10,     8,     9,    10,     8,     9,    10,     8,     9,    10,
-       3
+       9,     3,     8,    10,     4,     8,     9,     3,     8,     3,
+      19,     0,     4,    20,    20,    22,    19,     9,    10,     3,
+      29,    28,     4,     5,     6,     4,     8,     9,    10,     8,
+       9,    10,     4,     7,    -1,     4,     8,     9,    10,     8,
+       9,    10,     8,     9,    10,     8,     9,    10,     8,     9,
+      10,     3
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
@@ -639,23 +640,25 @@ static const yytype_int8 yycheck[] =
 static const yytype_int8 yystos[] =
 {
        0,     4,     5,     6,     8,     9,    10,    12,    13,    14,
-      15,    16,    17,     3,     3,     3,     0,     8,    14,    15,
-       8,    15,    17,     8,    16,     7,     8,    15,    14,     8,
-       3,     8,     8
+      15,    16,    17,     3,     3,     3,     3,     0,     8,    14,
+      15,     8,    15,    17,     8,    16,     7,     8,    15,    14,
+       8,     3,     8,     8
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_int8 yyr1[] =
 {
        0,    11,    12,    12,    12,    12,    12,    12,    12,    12,
-      12,    13,    13,    14,    14,    15,    15,    16,    16,    17
+      12,    13,    13,    13,    14,    14,    15,    15,    16,    16,
+      17
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
 static const yytype_int8 yyr2[] =
 {
        0,     2,     0,     2,     2,     3,     1,     2,     3,     4,
-       4,     1,     1,     1,     2,     1,     2,     2,     2,     4
+       4,     1,     1,     2,     1,     2,     1,     2,     2,     2,
+       4
 };
 
 
@@ -1219,35 +1222,41 @@ yyreduce:
   case 11:
 #line 40 "loopcommands.y"
           {allOn();}
-#line 1223 "loopcommands.tab.c"
+#line 1226 "loopcommands.tab.c"
     break;
 
   case 12:
 #line 41 "loopcommands.y"
-        {allOff();}
-#line 1229 "loopcommands.tab.c"
+        {allOff(); clearLoopTestFlags();}
+#line 1232 "loopcommands.tab.c"
     break;
 
-  case 17:
-#line 52 "loopcommands.y"
-                        { updateWantedSpeed((yyvsp[0].f));}
-#line 1235 "loopcommands.tab.c"
+  case 13:
+#line 42 "loopcommands.y"
+             {loopsToTest((yyvsp[0].f));}
+#line 1238 "loopcommands.tab.c"
     break;
 
   case 18:
 #line 53 "loopcommands.y"
-                   { updateWantedPosition((yyvsp[0].f));}
-#line 1241 "loopcommands.tab.c"
+                        { updateWantedSpeed((yyvsp[0].f));}
+#line 1244 "loopcommands.tab.c"
     break;
 
   case 19:
-#line 55 "loopcommands.y"
+#line 54 "loopcommands.y"
+                   { updateWantedPosition((yyvsp[0].f));}
+#line 1250 "loopcommands.tab.c"
+    break;
+
+  case 20:
+#line 56 "loopcommands.y"
                                { updateCommandXk( (yyvsp[-2].f), (yyvsp[-1].xk), (yyvsp[0].f));}
-#line 1247 "loopcommands.tab.c"
+#line 1256 "loopcommands.tab.c"
     break;
 
 
-#line 1251 "loopcommands.tab.c"
+#line 1260 "loopcommands.tab.c"
 
       default: break;
     }
@@ -1458,6 +1467,6 @@ yypushreturn:
 #undef yyvs
 #undef yyvsp
 #undef yystacksize
-#line 57 "loopcommands.y"
+#line 60 "loopcommands.y"
 
 

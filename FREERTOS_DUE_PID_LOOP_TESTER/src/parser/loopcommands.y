@@ -1,4 +1,4 @@
-/* simplest version of calculator */
+/* Grammer for PID testing functions. */
 %define api.push-pull push
 
 %{
@@ -38,7 +38,8 @@ command: /* nothing */
  ;
 
 onoff: ON {allOn();}
- | OFF  {allOff();}
+ | OFF  {allOff(); clearLoopTestFlags();}
+ | ON NUMBER {loopsToTest($2);}
  ;
 
 xkseq: xkset
@@ -54,5 +55,7 @@ parameter: SPEED NUMBER { updateWantedSpeed($2);}
 ;
 xkset: LOOPID NUMBER XK NUMBER { updateCommandXk( $2, $3, $4);} 
  ;
+
+
 %%
 

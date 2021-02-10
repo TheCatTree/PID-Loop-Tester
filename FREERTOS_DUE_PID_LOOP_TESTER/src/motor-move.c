@@ -11,7 +11,7 @@
 #define PERIOD_VALUE  100
 
 #define MAX_SIZE_OF_TIME_ARRAY 8
-int duty_cycle = 25;
+int duty_cycle = 75;
 TickType_t time_between_interrupts[MAX_SIZE_OF_TIME_ARRAY];
 int TimeBetweenInterrupts_index = 0;
 float Motor_Speed = 0;
@@ -21,6 +21,7 @@ int Motor_range = 0;
 EventBits_t m_update_loop_flag = (1UL << 0);
 EventBits_t m_position_loop_flag = (1UL << 1);
 EventBits_t m_speed_loop_flag = (1UL << 2);
+EventBits_t m_stats_capture_flag = (1UL << 3);
 
 void motorBackward(){
 	direction = 'b';

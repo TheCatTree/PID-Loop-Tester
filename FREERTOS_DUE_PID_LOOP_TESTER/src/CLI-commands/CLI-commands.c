@@ -44,6 +44,9 @@
 #include <string.h>
 #include <stdlib.h>
 
+/* Delay service. */
+#include <delay.h>
+
 
 /* FreeRTOS+CLI includes. */
 #include "FreeRTOS_CLI.h"
@@ -61,6 +64,14 @@
 /*Status Command */
 #include "status-capture/status-capture.h"
 
+
+/*
+ * Implements the test_loop_command command.
+ */
+static portBASE_TYPE test_loop_command(int8_t *pcWriteBuffer,
+		size_t xWriteBufferLen,
+		const int8_t *pcCommandString);
+		
 /*
  * Implements the run-time-stats command.
  */
@@ -266,6 +277,16 @@ static const CLI_Command_Definition_t loop_status_command_defintion =
 	printStats_command, /* The function to run. */
 	1 /* One parameter can be entered. */
 };
+
+/* Structure that defines the "test loops" command line command.  This takes a
+one parameters and prints x status. */
+static const CLI_Command_Definition_t test_loop_command_defintion =
+{
+	(const int8_t *const) "test_loop",
+	(const int8_t *const) " test_loop x, x = run time in ms \r\n Run the PID Loops. And dump out Stats.  \r\n\r\n",
+	test_loop_command, /* The function to run. */
+	1 /* One parameter can be entered. */
+};
 /*-----------------------------------------------------------*/
 
 void vRegisterCLICommands(void)
@@ -280,6 +301,7 @@ void vRegisterCLICommands(void)
 	FreeRTOS_CLIRegisterCommand(&zero_command_defintion);
 	FreeRTOS_CLIRegisterCommand(&loop_command_defintion);
 	FreeRTOS_CLIRegisterCommand(&loop_status_command_defintion);
+	FreeRTOS_CLIRegisterCommand(&test_loop_command_defintion);
 }
 
 /*-----------------------------------------------------------*/
@@ -1287,6 +1309,76 @@ static portBASE_TYPE printStats_command(int8_t *pcWriteBuffer,
 		} else {
 			sloppy_print(" %d \r\n" ,no_out);
 			printStats(no_out, xTaskGetTickCount());
+			/* No more parameters were found.  Make sure the write buffer does
+			not contain a valid string. */
+			pcWriteBuffer[0] = 0x00;
+
+			/* No more data to return. */
+			return_value = pdFALSE;
+
+			/* Start over the next time this command is executed. */
+			parameter_number = 0;
+		}
+	}
+
+	return return_value;
+}
+
+/*-----------------------------------------------------------*/
+
+static portBASE_TYPE test_loop_command(int8_t *pcWriteBuffer,
+		size_t xWriteBufferLen,
+		const int8_t *pcCommandString)
+{
+	int8_t *parameter_string;
+	portBASE_TYPE parameter_string_length, return_value;
+	static portBASE_TYPE parameter_number = 0;
+
+	/* Remove compile time warnings about unused parameters, and check the
+	write buffer is not NULL.  NOTE - for simplicity, this example assumes the
+	write buffer length is adequate, so does not check for buffer overflows. */
+	(void) pcCommandString;
+	(void) xWriteBufferLen;
+	configASSERT(pcWriteBuffer);
+	static int run_time;
+	if (parameter_number == 0) {
+		run_time = 0;
+		/* The first time the function is called after the command has been
+		entered just a header string is returned. */
+		sprintf((char *) pcWriteBuffer, "The parameters were:\r\n");
+
+		/* Next time the function is called the first parameter will be echoed
+		back. */
+		parameter_number = 1L;
+
+		/* There is more data to be returned as no parameters have been echoed
+		back yet. */
+		return_value = pdPASS;
+	} else {
+		/* Obtain the parameter string. */
+		parameter_string = (int8_t *) FreeRTOS_CLIGetParameter
+									(
+										pcCommandString,		/* The command string itself. */
+										parameter_number,		/* Return the next parameter. */
+										&parameter_string_length	/* Store the parameter string length. */
+									);
+
+		if (parameter_string != NULL) {
+			/* Return the parameter string. */
+			memset(pcWriteBuffer, 0x00, xWriteBufferLen);
+			sprintf((char *) pcWriteBuffer, "%ld: ", parameter_number);
+			strncat((char *) pcWriteBuffer, (const char *) parameter_string, parameter_string_length);
+			strncat((char *) pcWriteBuffer, "\r\n", strlen("\r\n"));
+			run_time = atoi(parameter_string);
+			/* There might be more parameters to return after this one. */
+			return_value = pdTRUE;
+			parameter_number++;
+		} else {
+			/* Turn on Test Loop Task. */
+			xTaskNotify( loopTesterHandle,
+			run_time,
+			eSetValueWithOverwrite
+			);
 			/* No more parameters were found.  Make sure the write buffer does
 			not contain a valid string. */
 			pcWriteBuffer[0] = 0x00;

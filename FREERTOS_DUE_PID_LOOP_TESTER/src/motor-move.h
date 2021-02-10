@@ -43,6 +43,7 @@ EventGroupHandle_t m_control_flags;
 extern EventBits_t m_update_loop_flag;
 extern EventBits_t m_position_loop_flag;
 extern EventBits_t m_speed_loop_flag;
+extern EventBits_t m_stats_capture_flag;
 
 int A_interrupt;
 int B_interrupt;

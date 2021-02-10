@@ -86,6 +86,41 @@ void printStats(int amount, uint32_t time){
 	buffer_in_use = false;
 }
 
+void printFullBuffer(uint32_t time){
+	bufferGard();
+	buffer_in_use = true;
+	float speed_bit_ratios = 18000 / 1024;//(2^10 bits)
+	float position_bit_ratios = 100 / 256;//(2^8 bits)
+	uint32_t speed_mask = 0x000003FF;
+	uint32_t tick_mask = 0x00003fff;
+	
+	uint32_t out = 0;
+	uint32_t last_tick = 0;
+	float speed = 0;
+	float position = 0;
+	uint32_t tick = 0;
+	int s_count = 0;
+	last_tick = buffer_peak() & tick_mask;
+	sloppy_print("block start *********{ \r\n");
+		while (!buffer_isEmpty())
+		{
+			out = buffer_read();
+			tick = out & tick_mask;
+			if (tick > last_tick)
+			{
+				s_count++;
+			}
+			//tick = time - (0x00003fff - tick) - ( 1024 * s_count);
+			
+			speed = (float)((out >> 14) & speed_mask)*speed_bit_ratios;
+			position = (float)(out >> 24)*position_bit_ratios;
+			
+			sloppy_print("%d,%f,%f\r\n",tick,position,speed);
+		}
+	sloppy_print(" \r\n}********* block end \r\n");
+	buffer_in_use = false;
+}
+
 void cleanCaptures(void){
 	buffer_drop();
 }

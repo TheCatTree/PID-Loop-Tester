@@ -10,6 +10,29 @@
 
 
 pid_update_item pid[NUMBERBOXES];
+volatile bool test_position_loop = false;
+volatile bool test_speed_loop = false;
+
+void loopsToTest(int loop){
+	switch (loop)
+	{
+	case 0:
+		test_position_loop = true;
+		break;
+		
+	case 1:
+		test_speed_loop = true;
+		break;
+	
+	default:
+		break;
+	}
+}
+
+void clearLoopTestFlags(){
+	test_position_loop = false;
+	test_speed_loop = false;
+} 
 
 void sloppy_print(const char *s, ...){
 	va_list ap;
@@ -34,6 +57,23 @@ void setUpCommands(cmnd_t * xks_a, int number_loops ){
   }
 }
 
+void flagedLoopsOn(){
+	sloppy_print("turning loops on to test. \n");
+	EventBits_t xLoopsOn = m_update_loop_flag;
+	
+	if (test_position_loop)
+	{
+		xLoopsOn = xLoopsOn | m_position_loop_flag;
+	}
+	
+	if (test_speed_loop)
+	{
+		xLoopsOn = xLoopsOn | m_speed_loop_flag;
+	}
+	
+	xEventGroupSetBits(m_control_flags, xLoopsOn);
+}
+
 void allOn(){
   //printf("ALL on.\n");
   sloppy_print("ALL on.\n");
@@ -42,6 +82,7 @@ void allOn(){
 								m_speed_loop_flag );
   xEventGroupSetBits(m_control_flags, xLoopsOn);
 }
+
 void allOff(){
   //printf("ALL off.\n");
   sloppy_print("ALL off.\n");
@@ -133,3 +174,4 @@ void updateWantedPosition( int x) {
 	output_string[0] = 0x00;
 	M_wanted_position = (xx * getRange()/100 );
 }
+
