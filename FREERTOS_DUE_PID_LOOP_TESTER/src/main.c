@@ -48,6 +48,7 @@
 #define mainUSART_ECHO_TASK_STACK_SIZE  (configMINIMAL_STACK_SIZE)
 #define mainSPI_FLASH_TASK_STACK_SIZE   (configMINIMAL_STACK_SIZE * 2)
 #define mainTWI_EEPROM_TASK_STACK_SIZE  (configMINIMAL_STACK_SIZE * 2)
+#define mainPID_TESTER_TASK_STACK_SIZE  (( size_t ) 5120)
 
 /*-----------------------------------------------------------*/
 
@@ -233,7 +234,7 @@ int main(void)
 	
 	xTaskCreate(Loop_testing,			/* PID testing task */
 	(const char * const) "PID tester",	/* Text name assigned to the task.  This is just to assist debugging.  The kernel does not use this name itself. */
-	configMINIMAL_STACK_SIZE,					/* The size of the stack allocated to the task. */
+	mainPID_TESTER_TASK_STACK_SIZE,					/* The size of the stack allocated to the task. */
 	NULL ,			
 	tskIDLE_PRIORITY + 1,						/* The priority allocated to the task. */
 	&loopTesterHandle);
@@ -728,7 +729,7 @@ static void position_control_loop(void *pvParameters){
 	{
 		vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS( 10 ) );
 		//wait until turned on
-		auto x = xEventGroupWaitBits( m_control_flags,
+		EventBits_t x = xEventGroupWaitBits( m_control_flags,
 		m_position_loop_flag,
 		pdFALSE,
 		pdFALSE,
@@ -815,7 +816,7 @@ static void speed_control_loop(void *pvParameters){
 	{
 		vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS( 10 ) );
 		//wait until turned on
-		auto x = xEventGroupWaitBits( m_control_flags,
+		EventBits_t x = xEventGroupWaitBits( m_control_flags,
 		m_speed_loop_flag,
 		pdFALSE,
 		pdFALSE,
@@ -868,7 +869,7 @@ static void capture_stats(void *pvParameters){
 		float speed = GetSpeed();
 		int ticks = xTaskGetTickCount();
 		//wait until turned on
-		auto x = xEventGroupWaitBits( m_control_flags,
+		EventBits_t x = xEventGroupWaitBits( m_control_flags,
 		m_stats_capture_flag,
 		pdFALSE,
 		pdFALSE,

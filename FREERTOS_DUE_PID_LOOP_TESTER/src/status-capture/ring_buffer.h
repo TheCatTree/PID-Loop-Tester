@@ -8,16 +8,23 @@
 #ifndef RINGBUFFER
 #define RINGBUFFER
 
-#define BUFFERMAX 3000
+#define BUFFERMAX 1000
+
+typedef struct {
+	float speed;
+	int position;
+	uint32_t ticks; 
+ } status_capture;
+
 #include <stdbool.h>
 #include <FreeRTOS.h>
 
 // your declarations (and certain types of definitions) here
-void buffer_push(uint32_t data);
-uint32_t buffer_pop( void );
-uint32_t buffer_read( void );
+void buffer_push(status_capture data);
+status_capture buffer_pop( void );
+status_capture buffer_read( void );
 void buffer_drop( void );
-uint32_t buffer_peak( void );
+status_capture buffer_peak( void );
 bool buffer_isEmpty( void );
 
 #endif

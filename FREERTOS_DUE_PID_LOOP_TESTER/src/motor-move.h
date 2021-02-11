@@ -47,7 +47,7 @@ extern EventBits_t m_stats_capture_flag;
 
 int A_interrupt;
 int B_interrupt;
-int M_position;
+volatile int M_position;
 int M_wanted_position;
 float M_wanted_speed;
 bool Motor_SpeedUpdate;

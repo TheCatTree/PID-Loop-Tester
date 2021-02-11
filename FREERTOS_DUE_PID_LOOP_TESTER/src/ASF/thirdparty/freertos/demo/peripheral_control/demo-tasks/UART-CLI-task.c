@@ -114,7 +114,7 @@ void create_uart_cli_task(Uart *uart_base, uint16_t stack_depth_words,
 
 	/* Create the UART CLI task. */
 	xTaskCreate(	uart_command_console_task,			/* The task that implements the command console. */
-					(const int8_t *const) "U_CLI",	/* Text name assigned to the task.  This is just to assist debugging.  The kernel does not use this name itself. */
+					(const char *const) "U_CLI",	/* Text name assigned to the task.  This is just to assist debugging.  The kernel does not use this name itself. */
 					stack_depth_words,					/* The size of the stack allocated to the task. */
 					(void *) freertos_uart,			/* The parameter is used to pass the already configured UART port into the task. */
 					task_priority,						/* The priority allocated to the task. */

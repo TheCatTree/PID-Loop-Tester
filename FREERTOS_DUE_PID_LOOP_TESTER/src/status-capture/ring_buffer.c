@@ -10,12 +10,12 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-uint32_t bufferStorage[BUFFERMAX];
+status_capture bufferStorage[BUFFERMAX];
 typedef struct circular_buf_t circular_buf_t;
 typedef circular_buf_t* cbuf_handle_t;
 
 struct circular_buf_t {
-	uint32_t * buffer;
+	status_capture * buffer;
 	size_t head;
 	size_t tail;
 	size_t max; //of the buffer
@@ -38,15 +38,15 @@ void circular_buf_reset(cbuf_handle_t cbuf);
 
 /// Put version 1 continues to add data if the buffer is full
 /// Old data is overwritten
-void circular_buf_put(cbuf_handle_t cbuf, uint32_t data);
+void circular_buf_put(cbuf_handle_t cbuf, status_capture data);
 
 /// Put Version 2 rejects new data if the buffer is full
 /// Returns 0 on success, -1 if buffer is full
-int circular_buf_put2(cbuf_handle_t cbuf, uint32_t data);
+int circular_buf_put2(cbuf_handle_t cbuf, status_capture data);
 
 /// Retrieve a value from the buffer
 /// Returns 0 on success, -1 if the buffer is empty
-int circular_buf_get(cbuf_handle_t cbuf, uint32_t * data);
+int circular_buf_get(cbuf_handle_t cbuf, status_capture * data);
 
 /// Returns true if the buffer is empty
 bool circular_buf_empty(cbuf_handle_t cbuf);
@@ -179,7 +179,7 @@ static void retreat_pointer(cbuf_handle_t cbuf)
 	cbuf->tail = (cbuf->tail + 1) % cbuf->max;
 }
 
-void circular_buf_put(cbuf_handle_t cbuf, uint32_t data)
+void circular_buf_put(cbuf_handle_t cbuf, status_capture data)
 {
 	configASSERT(cbuf && cbuf->buffer);
 
@@ -188,7 +188,7 @@ void circular_buf_put(cbuf_handle_t cbuf, uint32_t data)
 	advance_pointer(cbuf);
 }
 
-int circular_buf_put2(cbuf_handle_t cbuf, uint32_t data)
+int circular_buf_put2(cbuf_handle_t cbuf, status_capture data)
 {
 	int r = -1;
 
@@ -204,8 +204,8 @@ int circular_buf_put2(cbuf_handle_t cbuf, uint32_t data)
 	return r;
 }
 
-int circular_buf_peak(cbuf_handle_t cbuf, uint32_t * data);
-int circular_buf_peak(cbuf_handle_t cbuf, uint32_t * data)
+int circular_buf_peak(cbuf_handle_t cbuf, status_capture * data);
+int circular_buf_peak(cbuf_handle_t cbuf, status_capture * data)
 {
 	configASSERT(cbuf && data && cbuf->buffer);
 
@@ -221,7 +221,7 @@ int circular_buf_peak(cbuf_handle_t cbuf, uint32_t * data)
 	return r;
 }
 
-int circular_buf_get(cbuf_handle_t cbuf, uint32_t * data)
+int circular_buf_get(cbuf_handle_t cbuf, status_capture * data)
 {
 	configASSERT(cbuf && data && cbuf->buffer);
 
@@ -238,8 +238,8 @@ int circular_buf_get(cbuf_handle_t cbuf, uint32_t * data)
 	return r;
 }
 
-int circular_buf_get_reversed(cbuf_handle_t cbuf, uint32_t * data);
-int circular_buf_get_reversed(cbuf_handle_t cbuf, uint32_t * data)
+int circular_buf_get_reversed(cbuf_handle_t cbuf, status_capture * data);
+int circular_buf_get_reversed(cbuf_handle_t cbuf, status_capture * data)
 {
 	configASSERT(cbuf && data && cbuf->buffer);
 
@@ -256,18 +256,18 @@ int circular_buf_get_reversed(cbuf_handle_t cbuf, uint32_t * data)
 	return r;
 }
 
-void buffer_push(uint32_t data){
+void buffer_push(status_capture data){
 	circular_buf_put(buffer, data);
 	};
 	
-uint32_t buffer_pop(){
-	uint32_t out;
+status_capture buffer_pop(){
+	status_capture out;
 	circular_buf_get_reversed(buffer, &out);
 	return out;
 	};
 	
-uint32_t buffer_read(){
-	uint32_t out;
+status_capture buffer_read(){
+	status_capture out;
 	circular_buf_get(buffer, &out);
 	return out;
 };
@@ -276,8 +276,8 @@ void buffer_drop(){
 	circular_buf_reset(buffer);
 	};
 	
-uint32_t buffer_peak(){
-	uint32_t out;
+status_capture buffer_peak(){
+	status_capture out;
 	circular_buf_peak(buffer, &out);
 	return out;
 	};
