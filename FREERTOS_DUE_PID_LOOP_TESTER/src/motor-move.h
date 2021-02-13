@@ -81,4 +81,5 @@ void updateSpeed(int speed);
 char getDirection(void);
 int getRange(void);
 void updateRange(int range);
+void updateSpeedTimeOut(TickType_t time);
 #endif

@@ -11,8 +11,11 @@
 #define PERIOD_VALUE  100
 
 #define MAX_SIZE_OF_TIME_ARRAY 8
+#define UPDATE_SPEED_TIME pdMS_TO_TICKS( 30 )
 int duty_cycle = 75;
 TickType_t time_between_interrupts[MAX_SIZE_OF_TIME_ARRAY];
+TickType_t last_interrupt_time = 0 ;
+static const int ticks_per_ms = pdMS_TO_TICKS( 1 );
 int TimeBetweenInterrupts_index = 0;
 float Motor_Speed = 0;
 char direction = 's';
@@ -66,12 +69,34 @@ void setDutyCycle(int period){
 
 void updateTimeBetweenInterrupts(TickType_t time){
 	
-	time_between_interrupts[TimeBetweenInterrupts_index % MAX_SIZE_OF_TIME_ARRAY] = (time >= 0)? time : 0;
+	TickType_t x = time - last_interrupt_time;
+	last_interrupt_time = time;
+	time_between_interrupts[TimeBetweenInterrupts_index % MAX_SIZE_OF_TIME_ARRAY] = (x >= 0)? x : 0;
+	TimeBetweenInterrupts_index ++;
 	if (TimeBetweenInterrupts_index > 2* MAX_SIZE_OF_TIME_ARRAY)
 	{
 		TimeBetweenInterrupts_index = MAX_SIZE_OF_TIME_ARRAY;
 	}
 }
+
+void updateSpeedTimeOut(TickType_t time){
+	
+	
+	TickType_t x = time - last_interrupt_time;
+	
+	if (x > UPDATE_SPEED_TIME + getAverageOfTimeBetweenInterrupts())
+	{
+		time_between_interrupts[TimeBetweenInterrupts_index % MAX_SIZE_OF_TIME_ARRAY] = (x >= 0)? x : 0;
+		TimeBetweenInterrupts_index ++;
+		if (TimeBetweenInterrupts_index > 2* MAX_SIZE_OF_TIME_ARRAY)
+		{
+			TimeBetweenInterrupts_index = MAX_SIZE_OF_TIME_ARRAY;
+		}
+	}
+	
+	
+}
+
 //nb doesn't include time from last interrupt.
 TickType_t getAverageOfTimeBetweenInterrupts(){
 	TickType_t out = 0;
@@ -84,8 +109,10 @@ TickType_t getAverageOfTimeBetweenInterrupts(){
 	return out/numberofvalues;
 }
 
+
 float GetSpeed( void ){
-	return Motor_Speed/4;
+	updateSpeed(1000/(getAverageOfTimeBetweenInterrupts() / ticks_per_ms));
+	return Motor_Speed;
 }
 void updateSpeed(int speed){
 	Motor_Speed = speed;

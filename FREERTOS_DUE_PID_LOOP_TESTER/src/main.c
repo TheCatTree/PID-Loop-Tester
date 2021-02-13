@@ -194,7 +194,7 @@ int main(void)
 	(const char * const) "UPDATE SPEED",	/* Text name assigned to the task.  This is just to assist debugging.  The kernel does not use this name itself. */
 	configMINIMAL_STACK_SIZE,					/* The size of the stack allocated to the task. */
 	NULL ,			/* The parameter is used to pass the already configured UART port into the task. */
-	tskIDLE_PRIORITY,						/* The priority allocated to the task. */
+	tskIDLE_PRIORITY + 2,						/* The priority allocated to the task. */
 	NULL);								/* Used to store the handle to the created task - in this case the handle is not required. */
 	configASSERT(speed_update_task_build); 
 	
@@ -208,7 +208,7 @@ int main(void)
 	 (const char * const) "CAPTURE STATS",	/* Text name assigned to the task.  This is just to assist debugging.  The kernel does not use this name itself. */
 	 configMINIMAL_STACK_SIZE,					/* The size of the stack allocated to the task. */
 	 NULL ,			/* The parameter is used to pass the already configured UART port into the task. */
-	 tskIDLE_PRIORITY,						/* The priority allocated to the task. */
+	 tskIDLE_PRIORITY + 2,						/* The priority allocated to the task. */
 	 NULL);								/* Used to store the handle to the created task - in this case the handle is not required. */
 	 
 	 xTaskCreate(pwm_update,			/* The task that updates the PWM value. */
@@ -639,18 +639,12 @@ static void motor_move_task(void *pvParameters){
 static void update_speed(void *pvParameters){
 	TickType_t xLastWakeTime = xTaskGetTickCount();
 	TickType_t xLastupDateTime = xTaskGetTickCount();
-	static const int ticks_per_ms = pdMS_TO_TICKS( 1 );
+	
 	 for( ;; )
 	 {
+		 updateSpeedTimeOut(xTaskGetTickCount());
 	 
-		TickType_t x = getAverageOfTimeBetweenInterrupts();		if (!Motor_SpeedUpdate)
-		{	TickType_t y = xTaskGetTickCount() - xLastupDateTime;
-			if (y > pdMS_TO_TICKS( 10000 ))
-			{
-				y = pdMS_TO_TICKS( 10000 );
-			}
-			x = (x + y);
-		}		else{			xLastupDateTime = xTaskGetTickCount();		}		Motor_SpeedUpdate = false;				updateSpeed(1000/(x / ticks_per_ms));		vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS( 10 ) );
+				vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS( 30 ) );
 	 }
 }
 
@@ -873,7 +867,7 @@ static void capture_stats(void *pvParameters){
 		m_stats_capture_flag,
 		pdFALSE,
 		pdFALSE,
-		pdMS_TO_TICKS( 100 ) );
+		pdMS_TO_TICKS( 10 ) );
 		
 		if (x & m_stats_capture_flag)
 		{
